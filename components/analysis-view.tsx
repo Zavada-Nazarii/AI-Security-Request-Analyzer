@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Clipboard, ClipboardCheck, ExternalLink, Info, ShieldAlert, AlertTriangle } from 'lucide-react'
 import type { AIAnalysis } from "@/types/analysis"
+import { useToast } from "@/hooks/use-toast"
 
 type Props = {
   analysis: AIAnalysis
@@ -32,19 +33,56 @@ function SevBadge({ severity }: { severity: string }) {
 
 function CopyButton({ text, size = "sm" as const }: { text: string; size?: "sm" | "default" }) {
   const [copied, setCopied] = useState(false)
+  const { toast } = useToast()
+
+  async function copyWithFallback(payload: string) {
+    // 1) Спроба через сучасний API у секюрному контексті
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(payload)
+        return true
+      }
+    } catch {
+      // перейдемо до fallback
+    }
+    // 2) Fallback через прихований textarea (працює і на http)
+    try {
+      const ta = document.createElement("textarea")
+      ta.value = payload
+      // Вивести за межі екрану
+      ta.style.position = "fixed"
+      ta.style.top = "-1000px"
+      ta.style.left = "-1000px"
+      ta.setAttribute("readonly", "true")
+      document.body.appendChild(ta)
+      ta.select()
+      ta.setSelectionRange(0, ta.value.length)
+      const ok = document.execCommand("copy")
+      document.body.removeChild(ta)
+      if (ok) return true
+    } catch {
+      // ignore
+    }
+    return false
+  }
+
+  async function onCopy() {
+    const ok = await copyWithFallback(text)
+    setCopied(ok)
+    if (ok) {
+      toast({ title: "Скопійовано", description: "Команда додана у буфер обміну" })
+      setTimeout(() => setCopied(false), 1500)
+    } else {
+      toast({
+        title: "Не вдалося скопіювати",
+        description: "Спробуйте вручну виділити і скопіювати текст",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
-    <Button
-      type="button"
-      size={size}
-      variant="secondary"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(text)
-          setCopied(true)
-          setTimeout(() => setCopied(false), 1500)
-        } catch {}
-      }}
-    >
+    <Button type="button" size={size} variant="secondary" onClick={onCopy}>
       {copied ? <ClipboardCheck className="w-4 h-4 mr-2" /> : <Clipboard className="w-4 h-4 mr-2" />}
       {copied ? "Скопійовано" : "Копіювати"}
     </Button>
