@@ -8,10 +8,10 @@
 - Налаштування API ключа та секрету сесій.
 - Персистентність у `./data/app.db`.
 
-![Зразок001](./screenshot/001.png)
-![Зразок002](./screenshot/002.png)
-![Зразок003](./screenshot/003.png)
-![Зразок004](./screenshot/004.png)
+![Зразок001](./screenshot/example.png)
+![Зразок002](./screenshot/example.png)
+![Зразок003](./screenshot/example.png)
+![Зразок004](./example.png)
 
 ## Швидкий старт (Docker)
 
