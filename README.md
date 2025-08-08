@@ -8,13 +8,18 @@
 - Налаштування API ключа та секрету сесій.
 - Персистентність у `./data/app.db`.
 
+![Зразок001](./screenshot/001.png)
+![Зразок002](./screenshot/002.png)
+![Зразок003](./screenshot/003.png)
+![Зразок004](./screenshot/004.png)
+
 ## Швидкий старт (Docker)
 
 1. Встановіть Docker і Docker Compose.
 2. Запустіть:
-   \`\`\`
+```
    docker compose up --build
-   \`\`\`
+```
 3. Відкрийте http://localhost:3080
 4. Увійдіть:
    - Логін: `admin`
@@ -39,4 +44,3 @@ Default порт у контейнері 3000, проброшено на 3080.
 ## Під капотом
 - Next.js App Router, Server/Client Components та Server Actions [^1][^2].
 - AI SDK (`ai`, `@ai-sdk/xai`) із моделлю `grok-3`. Не використовується edge runtime.
-\`\`\`
