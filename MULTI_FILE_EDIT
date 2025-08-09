@@ -1,0 +1,78 @@
+// components/login-form.tsx
+import React from "react";
+import { fetch } from "node-fetch";
+
+export const LoginForm = () => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const res = await fetch("/api/login", { method: "POST", body: formData });
+    const data = await res.json();
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="text" name="username" placeholder="Username" />
+      <input type="password" name="password" placeholder="Password" />
+      <button type="submit">Login</button>
+    </form>
+  );
+};
+
+// app/dashboard/page.tsx
+import React from "react";
+
+export const DashboardPage = () => {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <form action="/api/logout" method="post">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  );
+};
+
+// lib/settings-actions.ts
+"use server"
+
+import bcrypt from "bcryptjs"
+import { getSettings as dbGetSettings, updateSettings as dbUpdateSettings, getUser as dbGetUser, setAdminPasswordHash } from "./db"
+
+export async function getSettings() {
+  return dbGetSettings()
+}
+
+export async function updateSettingsAction(formData: FormData) {
+  const xai = formData.get("xai_api_key") as string | null
+  const session_secret = formData.get("session_secret") as string | null
+  await dbUpdateSettings({
+    xai_api_key: xai && xai.startsWith("•") ? undefined : (xai || null),
+    session_secret: session_secret && session_secret.startsWith("•") ? undefined : (session_secret || null),
+  })
+}
+
+export async function getUser(username: string) {
+  return dbGetUser(username)
+}
+
+export async function changePasswordAction(formData: FormData) {
+  const current = (formData.get("current_password") as string) || ""
+  const next = (formData.get("new_password") as string) || ""
+  const user = await dbGetUser("admin")
+  if (!user) throw new Error("User not found")
+  const ok = await bcrypt.compare(current, user.password_hash).catch(() => false)
+  if (!ok) {
+    throw new Error("Невірний поточний пароль")
+  }
+  const hash = await bcrypt.hash(next, 10)
+  await setAdminPasswordHash(hash)
+}
+
+// package.json
+{
+  "dependencies": {
+    "geist": "^1.3.1"
+  }
+}
